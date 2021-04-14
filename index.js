@@ -31,10 +31,10 @@ const main = async () => {
 
   items.each(function (index, e) {
     const districtElement = selector(this);
-    const district = districtElement.text();
+    const district = districtElement.text().toLowerCase();
 
     const subCityElement = districtElement.parent().parent().parent();
-    const subCity = subCityElement.text().split("\n")[0];
+    const subCity = subCityElement.text().split("\n")[0].toLowerCase();
 
     dataFile[city][district] = subCity;
     console.log(`add ${district} = ${subCity}`);
