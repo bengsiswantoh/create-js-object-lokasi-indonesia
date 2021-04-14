@@ -14,7 +14,6 @@ const main = async () => {
     method: "get",
     url,
   });
-  // console.log(data);
 
   if (!dataFile[city]) {
     dataFile[city] = {};
@@ -25,9 +24,6 @@ const main = async () => {
 
   selector = cheerio.load(first_row.html());
   const items = selector("li > a");
-
-  // selector = cheerio.load(first_row);
-  // const items = selector("li");
 
   items.each(function (index, e) {
     const districtElement = selector(this);
