@@ -3,11 +3,7 @@ const cheerio = require("cheerio");
 const fs = require("fs");
 
 const url = "https://surabaya.go.id/id/page/0/8166/kecamatan";
-const city = "surabaya";
-
-const dataFilename = "data.json";
-let rawData = fs.readFileSync(dataFilename);
-let dataFile = JSON.parse(rawData);
+const filename = "surabaya-districts.js";
 
 const main = async () => {
   const { data } = await axios({
@@ -15,9 +11,7 @@ const main = async () => {
     url,
   });
 
-  if (!dataFile[city]) {
-    dataFile[city] = {};
-  }
+  const districts = {};
 
   let selector = cheerio.load(data);
   const first_row = selector("div.row:first");
@@ -32,11 +26,13 @@ const main = async () => {
     const subCityElement = districtElement.parent().parent().parent();
     const subCity = subCityElement.text().split("\n")[0].toLowerCase();
 
-    dataFile[city][district] = subCity;
+    districts[district] = subCity;
     console.log(`add ${district} = ${subCity}`);
   });
 
-  fs.writeFileSync(dataFilename, JSON.stringify(dataFile));
+  var content = `export const surabaya = ${JSON.stringify(districts)}`;
+
+  fs.writeFileSync(filename, content);
 };
 
 main();
