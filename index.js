@@ -30,7 +30,7 @@ const main = async () => {
     console.log(`add ${district} = ${subCity}`);
   });
 
-  var content = `export const surabaya = ${JSON.stringify(districts)}`;
+  var content = `export const surabayaDistricts = ${JSON.stringify(districts)}`;
 
   fs.writeFileSync(filename, content);
 };
