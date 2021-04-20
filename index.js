@@ -82,7 +82,7 @@ const createOthers = () => {
         if (!item.variable["ALL"]) {
           item.variable["ALL"] = [];
         }
-        if (!item[parentId]) {
+        if (!item.variable[parentId]) {
           item.variable[parentId] = [];
         }
 
