@@ -1,10 +1,7 @@
 const fs = require("fs");
 const { parse, write } = require("fast-csv");
 
-const provinces = [];
-const regencies = [];
-const districts = [];
-const villages = [];
+const provinces = {};
 
 const provincesData = {
   source: "../api-wilayah-indonesia/data/provinces.csv",
@@ -13,26 +10,9 @@ const provincesData = {
   output: "provinces.js",
 };
 
-// const data = [
-//   {
-//     source: "../api-wilayah-indonesia/data/regencies.csv",
-//     name: "cities",
-//     variable: regencies,
-//     output: "cities.js",
-//   },
-//   {
-//     source: "../api-wilayah-indonesia/data/districts.csv",
-//     name: "districts",
-//     variable: districts,
-//     output: "districts.js",
-//   },
-//   {
-//     source: "../api-wilayah-indonesia/data/villages.csv",
-//     name: "subdistricts",
-//     variable: villages,
-//     output: "subdistricts.js",
-//   },
-// ];
+const regencies = {};
+const districts = {};
+const villages = {};
 
 const data = [
   {
@@ -41,47 +21,79 @@ const data = [
     variable: regencies,
     output: "cities.js",
   },
+  {
+    source: "../api-wilayah-indonesia/data/districts.csv",
+    name: "districts",
+    variable: districts,
+    output: "districts.js",
+  },
+  {
+    source: "../api-wilayah-indonesia/data/villages.csv",
+    name: "subdistricts",
+    variable: villages,
+    output: "subdistricts.js",
+  },
 ];
 
-const writeFile = (filename, content) => {
-  var content = `export const provinces = ${JSON.stringify(provinces)}`;
+const writeFile = (filename, constName, content) => {
+  var content = `export const ${constName} = ${JSON.stringify(content)}`;
   fs.writeFileSync(filename, content);
 };
 
-fs.createReadStream(provincesData.source)
-  .pipe(parse())
-  .on("data", (row) => {
-    const id = row[0];
-    const name = row[1];
-    provincesData.variable.push({ id, name });
+const createProvinces = () => {
+  if (fs.existsSync(provincesData.output)) {
+    fs.unlinkSync(provincesData.output);
+  }
 
-    var content = `export const ${provincesData.name} = ${JSON.stringify(
-      provincesData.variable
-    )}`;
-    writeFile(provincesData.output, content);
-  });
-
-for (const item of data) {
-  fs.createReadStream(item.source)
+  fs.createReadStream(provincesData.source)
     .pipe(parse())
     .on("data", (row) => {
       const id = row[0];
-      const parent = row[1];
-      const name = row[2];
+      const name = row[1];
 
-      if (!item.variable[parent]) {
-        item.variable[parent] = [];
-      }
-      if (!item.variable["ALL"]) {
-        item.variable["ALL"] = [];
+      if (!provincesData.variable["ALL"]) {
+        provincesData.variable["ALL"] = [];
       }
 
-      item.variable[parent].push({ id, name });
-      item.variable["ALL"].push({ id, parent, name });
-
-      var content = `export const ${item.name} = ${JSON.stringify(
-        item.variable
-      )}`;
-      writeFile(item.output, content);
+      provincesData.variable["ALL"].push({ id, name });
+    })
+    .on("end", (rowCount) => {
+      writeFile(
+        provincesData.output,
+        provincesData.name,
+        provincesData.variable
+      );
     });
-}
+};
+
+const createOthers = () => {
+  for (const item of data) {
+    if (fs.existsSync(item.output)) {
+      fs.unlinkSync(item.output);
+    }
+
+    fs.createReadStream(item.source)
+      .pipe(parse())
+      .on("data", (row) => {
+        const id = row[0];
+        const parentId = row[1];
+        const name = row[2];
+
+        if (!item.variable["ALL"]) {
+          item.variable["ALL"] = [];
+        }
+        if (!item[parentId]) {
+          item.variable[parentId] = [];
+        }
+
+        item.variable["ALL"].push({ id, parentId, name });
+        item.variable[parentId].push({ id, name });
+      })
+      .on("end", (rowCount) => {
+        writeFile(item.output, item.name, item.variable);
+      });
+  }
+};
+
+createProvinces();
+createOthers();
